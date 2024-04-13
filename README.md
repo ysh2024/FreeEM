@@ -2,11 +2,11 @@
 
 2. How to run the programs in the folder: EMR Signal Processing?
 
-2.1 To run the programs in the folder: EMR Signal Processing, raw data (comp.mat) is needed, which can be downloaded from the following link:
+2.1 Download all the programs to a local folder and run them using MATLAB. Before running the program, you need to download the raw data (comp.mat) and place it in the same directory as the .m program. Raw data can be downloaded from the following link:
 
 https://drive.google.com/file/d/1fcsYbMnhJUFGZkLRDSpGAILPjI3GcCv-/view?usp=sharing
 
-Then, place the "comp.mat" in the same directory as the .m program; 
+Then, proceed to run the following programs sequentially.
 
 2.2 Run the "extractDataFromReceivedSignals.m" to convert the received EMR signals into a spectrogram and extract training and testing data from the spectrogram.
 
