@@ -1,16 +1,17 @@
+% This program converts the received EMR signals into a spectrogram and extracts training and testing data from the spectrogram. 
+% The training data is saved in four files, which are the available chips sent from four victim computers to the attacker respectively. 
+% The testing data is saved in one file, which is combined chips sent from four victim computers to the attacker simultaneously.
+% Input: comp.mat
+% Output: MAabs.mat, MBabs.mat, MCabs.mat, MDabs.mat, rawTestData.mat
 clear;
 clc;
 close all;
 
-thres=0.5;
-winSize=1;
-loss=0.5;
-fftSize=1024;
+thres=0.5;% Weaken the high-energy signals on the spectrogram, making the weak EMR signals more prominent on the spectrogram.
+fftSize=1024; % Frequency resolution (width) of the spectrogram.
+SP=13586+25019;% Starting point of training data
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SP=13586+25019;% starting point of training data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% Read the received signals and construct them into a matrix..
 if exist('comp.mat','file')==0
     path=[pwd,'\EMR.dat'];
     id = fopen(path, 'r');
@@ -28,7 +29,8 @@ row=floor(length(comp)/fftSize);
 M=reshape(comp(1:row*fftSize),fftSize,row);
 M=M.';
 
-block=100000;% divide into several blocks to fit the limitation of GPU
+% Convert time-domain signals into frequency-domain signals. Due to the limited amount of data that can be processed by the GPU, it needs to be converted in batches.
+block=100000;
 for row=1:block:size(M,1)
     m=M(row:min([row+block-1,size(M,1)]),:);
     m=gpuArray(m);
@@ -43,35 +45,22 @@ figure('Name','Spectrum of EMR Signals');
 imagesc(M);hold on;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-startData=SP-25019;%from 2ms
-finishData=SP-21;%to 1281ms
+% Extract testing data from the spectrogram and save it as rawTestData.mat.
+startData=SP-25019;
+finishData=SP-21;
 rawTestData=M(startData:finishData,:);
-% distri=sum(rawTestData,1);
-% rawTestData(:,distri/distri(512)>0.6)=0;
-% distri=movmean(distri,winSize);
-% distri=-rescale(distri,0,loss)+1;
-% figure;
-% plot(distri);
-% rawTestData=rawTestData.*distri;
 save rawTestData.mat rawTestData;
 figure('Name','rawTestData');
 imagesc(rawTestData);hold on;
 ylabel('time');
 xlabel('frequency (MHz)');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-startA=SP;%1 chip lasts for 51.2us, 1 test chip set lasts for 1ms.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Extract training data (sent from victim A) from the
+% spectrogram and save it as MAabs.mat.
+startA=SP;
 finishA=SP+15624;
 MA=M(startA:finishA,:);
-% distri=sum(MA,1);
-% MA(:,distri/distri(512)>0.6)=0;
-% distri=movmean(distri,winSize);
-% distri=-rescale(distri,0,loss)+1;
-% figure;
-% plot(distri);
-% figure;
-% imagesc(MA);hold on;
-% MA=MA.*distri;
 save MAabs.mat MA;
 figure('Name','Training Data from Sender A');
 imagesc(MA);hold on;
@@ -79,16 +68,11 @@ ylabel('time');
 xlabel('frequency (MHz)');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-startB=SP+15625;%1 chip lasts for 51.2us, 1 training chip set lasts for 100ms.
+% Extract training data (sent from victim B) from the spectrogram
+% and save it as MBabs.mat.
+startB=SP+15625;
 finishB=SP+31249;
 MB=M(startB:finishB,:);
-% distri=sum(MB,1);
-% MB(:,distri/distri(512)>0.6)=0;
-% distri=movmean(distri,winSize);
-% distri=-rescale(distri,0,loss)+1;
-% figure;
-% plot(distri);
-% MB=MB.*distri;
 save MBabs.mat MB;
 figure('Name','Training Data from Sender B');
 imagesc(MB);hold on;
@@ -96,16 +80,11 @@ ylabel('time');
 xlabel('frequency (MHz)');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Extract training data (sent from victim C) from the spectrogram
+% and save it as MCabs.mat.
 startC=SP+31250;
 finishC=SP+46874;
 MC=M(startC:finishC,:);
-% distri=sum(MC,1);
-% MC(:,distri/distri(512)>0.6)=0;
-% distri=movmean(distri,winSize);
-% distri=-rescale(distri,0,loss)+1;
-% figure;
-% plot(distri);
-% MC=MC.*distri;
 save MCabs.mat MC;
 figure('Name','Training Data from Sender C');
 imagesc(MC);hold on;
@@ -113,16 +92,11 @@ ylabel('time');
 xlabel('frequency (MHz)');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Extract training data (sent from victim D) from the spectrogram
+% and save it as MDabs.mat.
 startD=SP+46875;
 finishD=SP+62499;
 MD=M(startD:finishD,:);
-% distri=sum(MC,1);
-% MC(:,distri/distri(512)>0.6)=0;
-% distri=movmean(distri,winSize);
-% distri=-rescale(distri,0,loss)+1;
-% figure;
-% plot(distri);
-% MC=MC.*distri;
 save MDabs.mat MD;
 figure('Name','Training Data from Sender D');
 imagesc(MD);hold on;
