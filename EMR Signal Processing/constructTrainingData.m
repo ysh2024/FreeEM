@@ -1,10 +1,15 @@
+% This program utilizes the chips received from each victim computer
+% to construct combined chips (and corresponding labels), which will be used for training the neural network in subsequent processes.
+% Input: MAabs.mat, MBabs.mat, MCabs.mat, MDabs.mat
+% Output: TrainData.mat, TrainLabel.mat, DataCompletionForDNN.mat
+
 clear;
 clc;
 close all;
 
 fftSize=1024;
-startOffset=100;% to avoid the RAM hasn't started
-qty=200;% quantity of training data of each chip
+startOffset=100;% Due to the victim's unstable initiation of EMR signal transmission, we discard some unstable signals at the beginning when processing the received signals.
+qty=200;% The victim will send the same chip multiple times to provide a sufficient amount of training data. We will extract $qty$ of these for training purposes.
 
 
 load MAabs.mat;
@@ -12,6 +17,7 @@ load MBabs.mat;
 load MCabs.mat;
 load MDabs.mat;
 
+% Determine the starting and ending points for extracting the signals.
 intvl=size(MA,1)/8;
 startA=round(startOffset:intvl:size(MA,1));
 startA=startA(1:8);
@@ -27,6 +33,8 @@ finishD=finishA;
 TrainData=single(zeros(qty*(8^4),fftSize));
 TrainLabel=single(zeros(qty*(8^4),1));
 
+% Each victim computer can send 8 different chips. At any given time, there could be 8^4 different combinations of chips from the 4 victim computers.
+% Hence, we utilize a single chip from each victim computer to construct 8^4 combinations for training the neural network.
 type=1;
 for A=1:1:8
     A
@@ -43,23 +51,21 @@ for A=1:1:8
     end
 end
 
-% figure;
-% plot(TrainLabel);hold on;
-
-% TrainData(TrainData>thres)=thres;
 TrainLabel=categorical(TrainLabel);
 
 tic;
-savefast TrainData.mat TrainData;%save 240s=4min
+savefast TrainData.mat TrainData;
 toc
 save TrainLabel.mat TrainLabel;
 
+% During testing, the adopted neural network needs all 8^4 combinations, but received data may lack some. We manually add missing combinations to the testing data, ensuring smooth operation. These additions aren't considered in error rate calculations.
 figure('Name','Combined Chips for Training');
 imagesc(TrainData);hold on;
 size(TrainData)
 DataCompletionForDNN=TrainData(1:200:end,:);
 save DataCompletionForDNN.mat DataCompletionForDNN;
 
+% Overlay chips from individual victim computers to create combined chips
 function [data,label]=Combine(data1,lb1,data2,lb2,data3,lb3,data4,lb4,qty)
     label=ones(qty,1)*((lb1-1)*8^3+(lb2-1)*8^2+(lb3-1)*8+lb4);
     cube(:,:,1)=data1(1:qty,:);

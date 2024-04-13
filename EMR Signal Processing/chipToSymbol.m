@@ -1,6 +1,10 @@
+% This program converts four chip sequences into four symbol sequences, and then calculates the accuracy of each symbol sequence.
+% Input: Table.mat, stdTable.mat
+% Output: symbolAccuracy & bitAccuracy
 clear;
 clc;
 close all;
+% The chip sequence that each victim computer wants to transmit (i.e., the correct answer).
 A=[
     1,1,1,1,1,1,1,1;
     1,2,2,2,2,2,2,2;
@@ -77,6 +81,7 @@ load stdTable.mat;
 startCol=1;
 finishCol=8;
 
+% calculate the symbol accuracy of sender A
 chipSeq=[];
 for th=1:1:10
     chipSeq=[chipSeq;Table(th:10:size(Table,1),1)];%s1,s2,...,s16, s1,s2,...,s16, 10 times (160 symbols) in total
@@ -107,7 +112,7 @@ stdBit=dec2bin(stdSbSeqBinary,4);
 bit=dec2bin(sbSeq-1,4);
 bitAccuracy=sum(bit==stdBit,'all')/(1600*4)
 
-
+% calculate the symbol accuracy of sender B
 chipSeq=[];
 for th=1:1:10
     chipSeq=[chipSeq;Table(th:10:size(Table,1),2)];%s1,s2,...,s16, s1,s2,...,s16, 10 times (160 symbols) in total
@@ -140,7 +145,7 @@ bit=dec2bin(sbSeq-1,4);
 bitAccuracy=sum(bit==stdBit,'all')/(1600*4)
 
 
-
+% calculate the symbol accuracy of sender C
 chipSeq=[];
 for th=1:1:10
     chipSeq=[chipSeq;Table(th:10:size(Table,1),3)];%s1,s2,...,s16, s1,s2,...,s16, 10 times (160 symbols) in total
@@ -170,7 +175,7 @@ bit=dec2bin(sbSeq-1,4);
 bitAccuracy=sum(bit==stdBit,'all')/(1600*4)
 
 
-
+% calculate the symbol accuracy of sender D
 chipSeq=[];
 for th=1:1:10
     chipSeq=[chipSeq;Table(th:10:size(Table,1),4)];%s1,s2,...,s16, s1,s2,...,s16, 10 times (160 symbols) in total
